@@ -1,19 +1,49 @@
+/*
+ * Copyright (C) 2011 devel.nix@gmail.com
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.json.rpc.server;
 
-import com.google.gson.*;
-import org.json.rpc.RpcIntroSpection;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import org.json.rpc.commons.GsonTypeChecker;
+import org.json.rpc.commons.JsonRpcErrorCodes;
+import org.json.rpc.commons.JsonRpcException;
+import org.json.rpc.commons.JsonRpcRemoteException;
+import org.json.rpc.commons.RpcIntroSpection;
+import org.json.rpc.commons.TypeChecker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.PrintWriter;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.json.rpc.server.SupportedTypes.getTypeName;
-import static org.json.rpc.server.SupportedTypes.isAllowed;
 
 public final class JsonRpcExecutor implements RpcIntroSpection {
 
@@ -22,48 +52,78 @@ public final class JsonRpcExecutor implements RpcIntroSpection {
     private static final Pattern METHOD_PATTERN = Pattern
             .compile("([_a-zA-Z][_a-zA-Z0-9]*)\\.([_a-zA-Z][_a-zA-Z0-9]*)");
 
-    private final Map<String, Entry<?>> handlers;
+    private final Map<String, HandleEntry<?>> handlers;
+
+    private final TypeChecker typeChecker;
+    private volatile boolean locked;
+
+    public JsonRpcExecutor() {
+        this(new GsonTypeChecker());
+    }
 
     @SuppressWarnings("unchecked")
-    public JsonRpcExecutor() {
-        this.handlers = new HashMap<String, Entry<?>>();
+    public JsonRpcExecutor(TypeChecker typeChecker) {
+        this.typeChecker = typeChecker;
+        this.handlers = new HashMap<String, HandleEntry<?>>();
         addHandler("system", this, RpcIntroSpection.class);
     }
 
+    public boolean isLocked() {
+        return locked;
+    }
+
     public <T> void addHandler(String name, T handler, Class<T>... classes) {
-        Entry<T> entry = new Entry<T>(handler, classes);
-        if (this.handlers.containsKey(name)) {
-            throw new IllegalArgumentException("handler already exists");
-        }
-        this.handlers.put(name, entry);
-    }
-
-    private static void verifyInterface(Class<?> clazz) {
-        if (clazz == null) {
-            throw new NullPointerException("clazz");
-        }
-        if (!clazz.isInterface()) {
-            throw new IllegalArgumentException("clazz is not an interface");
+        if (locked) {
+            throw new JsonRpcException("executor has been locked, can't add more handlers");
         }
 
-        for (Method method : clazz.getMethods()) {
-            isAllowed(method);
+        synchronized (handlers) {
+            HandleEntry<T> handleEntry = new HandleEntry<T>(typeChecker, handler, classes);
+            if (this.handlers.containsKey(name)) {
+                throw new IllegalArgumentException("handler already exists");
+            }
+            this.handlers.put(name, handleEntry);
         }
     }
 
-    public final void execute(JsonRpcServerTransport transport) {
+    public void execute(JsonRpcServerTransport transport) {
+        if (!locked) {
+            synchronized (handlers) {
+                locked = true;
+            }
+            LOG.info("locking executor to avoid modification");
+        }
+
         String methodName = null;
         JsonArray params = null;
 
         JsonObject resp = new JsonObject();
-        String error = null;
+        resp.addProperty("jsonrpc", "2.0");
 
+        String errorMessage = null;
+        Integer errorCode = null;
+        String errorData = null;
+
+        JsonObject req = null;
         try {
             String requestData = transport.readRequest();
             LOG.debug("JSON-RPC >>  {}", requestData);
             JsonParser parser = new JsonParser();
-            JsonObject req = (JsonObject) parser.parse(new StringReader(requestData));
+            req = (JsonObject) parser.parse(new StringReader(requestData));
+        } catch (Throwable t) {
+            errorCode = JsonRpcErrorCodes.PARSE_ERROR_CODE;
+            errorMessage = "unable to parse json-rpc request";
+            errorData = getStackTrace(t);
 
+            LOG.warn(errorMessage, t);
+
+            sendError(transport, resp, errorCode, errorMessage, errorData);
+            return;
+        }
+
+
+        try {
+            assert req != null;
             resp.add("id", req.get("id"));
 
             methodName = req.getAsJsonPrimitive("method").getAsString();
@@ -71,50 +131,97 @@ public final class JsonRpcExecutor implements RpcIntroSpection {
             if (params == null) {
                 params = new JsonArray();
             }
-        } catch (Exception e) {
-            LOG.warn("unable to read request", e);
-            error = "unable to read request";
-        }
+        } catch (Throwable t) {
+            errorCode = JsonRpcErrorCodes.INVALID_REQUEST_ERROR_CODE;
+            errorMessage = "unable to read request";
+            errorData = getStackTrace(t);
 
-        if (error == null) {
-            try {
-                JsonElement result = executeMethod(methodName, params);
-                resp.add("result", result);
-            } catch (Throwable t) {
-                LOG.warn("exception occured while executing : " + methodName, t);
-                error = t.getMessage();
-            }
+
+            LOG.warn(errorMessage, t);
+            sendError(transport, resp, errorCode, errorMessage, errorData);
+            return;
         }
 
         try {
-            if (error != null) {
-                resp.addProperty("error", error);
+            JsonElement result = executeMethod(methodName, params);
+            resp.add("result", result);
+        } catch (Throwable t) {
+            LOG.warn("exception occured while executing : " + methodName, t);
+            if (t instanceof JsonRpcRemoteException) {
+                sendError(transport, resp, (JsonRpcRemoteException) t);
+                return;
             }
+            errorCode = JsonRpcErrorCodes.getServerError(1);
+            errorMessage = t.getMessage();
+            errorData = getStackTrace(t);
+            sendError(transport, resp, errorCode, errorMessage, errorData);
+            return;
+        }
+
+        try {
             String responseData = resp.toString();
-            LOG.debug("JSON-RPC <<  {}", responseData);
+            LOG.debug("JSON-RPC result <<  {}", responseData);
             transport.writeResponse(responseData);
         } catch (Exception e) {
             LOG.warn("unable to write response : " + resp, e);
         }
     }
 
+    private void sendError(JsonRpcServerTransport transport, JsonObject resp, JsonRpcRemoteException e) {
+        sendError(transport, resp, e.getCode(), e.getMessage(), e.getData());
+    }
+
+    private void sendError(JsonRpcServerTransport transport, JsonObject resp, Integer code, String message, String data) {
+        JsonObject error = new JsonObject();
+        if (code != null) {
+            error.addProperty("code", code);
+        }
+
+        if (message != null) {
+            error.addProperty("message", message);
+        }
+
+        if (data != null) {
+            error.addProperty("data", data);
+        }
+
+        resp.add("error", error);
+        resp.remove("result");
+        String responseData = resp.toString();
+
+        LOG.debug("JSON-RPC error <<  {}", responseData);
+        try {
+            transport.writeResponse(responseData);
+        } catch (Exception e) {
+            LOG.error("unable to write error response : " + responseData, e);
+        }
+    }
+
+    private String getStackTrace(Throwable t) {
+        StringWriter str = new StringWriter();
+        PrintWriter w = new PrintWriter(str);
+        t.printStackTrace(w);
+        w.close();
+        return str.toString();
+    }
+
     private JsonElement executeMethod(String methodName, JsonArray params) throws Throwable {
         try {
             Matcher mat = METHOD_PATTERN.matcher(methodName);
             if (!mat.find()) {
-                throw new IllegalArgumentException("invalid method name");
+                throw new JsonRpcRemoteException(JsonRpcErrorCodes.INVALID_REQUEST_ERROR_CODE, "invalid method name", null);
             }
 
             String handleName = mat.group(1);
             methodName = mat.group(2);
 
-            Entry<?> entry = handlers.get(handleName);
-            if (entry == null) {
-                throw new IllegalArgumentException("no such method exists");
+            HandleEntry<?> handleEntry = handlers.get(handleName);
+            if (handleEntry == null) {
+                throw new JsonRpcRemoteException(JsonRpcErrorCodes.METHOD_NOT_FOUND_ERROR_CODE, "no such method exists", null);
             }
 
             Method executableMethod = null;
-            for (Method m : entry.methods) {
+            for (Method m : handleEntry.getMethods()) {
                 if (!m.getName().equals(methodName)) {
                     continue;
                 }
@@ -126,18 +233,18 @@ public final class JsonRpcExecutor implements RpcIntroSpection {
             }
 
             if (executableMethod == null) {
-                throw new IllegalArgumentException("no such method exists");
+                throw new JsonRpcRemoteException(JsonRpcErrorCodes.METHOD_NOT_FOUND_ERROR_CODE, "no such method exists", null);
             }
 
             Object result = executableMethod.invoke(
-                    entry.handler, getParameters(executableMethod, params));
+                    handleEntry.getHandler(), getParameters(executableMethod, params));
 
             return new Gson().toJsonTree(result);
         } catch (Throwable t) {
             if (t instanceof InvocationTargetException) {
                 t = ((InvocationTargetException) t).getTargetException();
             }
-            throw t;
+            throw new JsonRpcRemoteException(JsonRpcErrorCodes.getServerError(0), t.getMessage(), getStackTrace(t));
         }
     }
 
@@ -161,81 +268,16 @@ public final class JsonRpcExecutor implements RpcIntroSpection {
         return list.toArray();
     }
 
-
-    private static class Entry<T> {
-
-        public final Class<T>[] classes;
-        public final T handler;
-        public final Map<String, String[]> signatures;
-        public final Set<Method> methods;
-
-        public Entry(T handler, Class<T>... classes) {
-            if (handler == null) {
-                throw new NullPointerException("handler");
-            }
-
-            if (classes.length == 0) {
-                throw new IllegalArgumentException(
-                        "at least one interface has to be mentioned");
-            }
-
-            this.handler = handler;
-            this.classes = classes.clone();
-
-            Map<String, List<String>> map = new HashMap<String, List<String>>();
-            Set<Method> set = new HashSet<Method>();
-
-            for (Class<?> clazz : classes) {
-                verifyInterface(clazz);
-
-                if (!clazz.isInterface()) {
-                    throw new IllegalArgumentException(
-                            "class should be an interface : " + clazz);
-                }
-
-                for (Method m : clazz.getMethods()) {
-                    set.add(m);
-                    Class<?>[] params = m.getParameterTypes();
-
-                    List<String> list = map.get(m.getName());
-                    if (list == null) {
-                        list = new ArrayList<String>();
-                    }
-                    StringBuffer buff = new StringBuffer(getTypeName(m
-                            .getReturnType()));
-                    for (int i = 0; i < params.length; i++) {
-                        buff.append(",").append(getTypeName(params[i]));
-                    }
-                    list.add(buff.toString());
-                    map.put(m.getName(), list);
-                }
-
-            }
-
-            Map<String, String[]> signs = new TreeMap<String, String[]>();
-            for (String key : map.keySet()) {
-                signs.put(key, map.get(key).toArray(new String[0]));
-            }
-
-            this.methods = Collections.unmodifiableSet(set);
-            this.signatures = Collections.unmodifiableMap(signs);
-        }
-    }
-
     public String[] listMethods() {
         Set<String> methods = new TreeSet<String>();
         for (String name : this.handlers.keySet()) {
-            Entry<?> entry = this.handlers.get(name);
-            for (String method : entry.signatures.keySet()) {
+            HandleEntry<?> handleEntry = this.handlers.get(name);
+            for (String method : handleEntry.getSignatures().keySet()) {
                 methods.add(name + "." + method);
             }
         }
-        return methods.toArray(new String[0]);
-    }
-
-    public String methodHelp(String method) {
-        // FIXME: implement this
-        return "";
+        String[] arr = new String[methods.size()];
+        return methods.toArray(arr);
     }
 
     public String[] methodSignature(String method) {
@@ -253,17 +295,17 @@ public final class JsonRpcExecutor implements RpcIntroSpection {
 
         Set<String> signatures = new TreeSet<String>();
 
-        Entry<?> entry = handlers.get(handleName);
-        if (entry == null) {
+        HandleEntry<?> handleEntry = handlers.get(handleName);
+        if (handleEntry == null) {
             throw new IllegalArgumentException("no such method exists");
         }
 
-        for (Method m : entry.methods) {
+        for (Method m : handleEntry.getMethods()) {
             if (!m.getName().equals(methodName)) {
                 continue;
             }
 
-            String[] sign = entry.signatures.get(m.getName());
+            String[] sign = handleEntry.getSignatures().get(m.getName());
 
             StringBuffer buff = new StringBuffer(sign[0]);
             for (int i = 1; i < sign.length; i++) {
@@ -277,7 +319,8 @@ public final class JsonRpcExecutor implements RpcIntroSpection {
             throw new IllegalArgumentException("no such method exists");
         }
 
-        return signatures.toArray(new String[0]);
+        String[] arr = new String[signatures.size()];
+        return signatures.toArray(arr);
     }
 
 
