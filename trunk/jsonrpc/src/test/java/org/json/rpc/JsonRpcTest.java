@@ -1,6 +1,23 @@
+/*
+ * Copyright (C) 2011 devel.nix@gmail.com
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.json.rpc;
 
 import org.json.rpc.client.*;
+import org.json.rpc.commons.RpcIntroSpection;
 import org.json.rpc.server.JsonRpcExecutor;
 import org.json.rpc.server.JsonRpcServerTransport;
 import org.testng.annotations.AfterTest;
@@ -34,7 +51,7 @@ public class JsonRpcTest {
     @Test
     public void testListMethods() throws Exception {
         String[] methods = system.listMethods();
-        assertEquals(methods, new String[]{"system.listMethods", "system.methodHelp", "system.methodSignature"});
+        assertEquals(methods, new String[]{"system.listMethods", "system.methodSignature"});
     }
 
     @Test

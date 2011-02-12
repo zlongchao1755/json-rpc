@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.json.rpc.server;
+package org.json.rpc.commons;
 
-public interface JsonRpcServerTransport {
+public interface RpcIntroSpection {
 
-    String readRequest() throws Exception;
+    String[] listMethods();
 
-    void writeResponse(String responseData) throws Exception;
+    String[] methodSignature(String method);
 
 }

@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package org.json.rpc.server;
+package org.json.rpc.commons;
 
-public interface JsonRpcServerTransport {
+public class JsonRpcException extends RuntimeException {
 
-    String readRequest() throws Exception;
+    public JsonRpcException(String message) {
+        super(message);
+    }
 
-    void writeResponse(String responseData) throws Exception;
-
+    public JsonRpcException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }
