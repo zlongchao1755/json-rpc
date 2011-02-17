@@ -9,11 +9,20 @@
 == Maven ==
 
 {{{
-<dependency>
-   <groupId>org.json.rpc</groupId>
-   <artifactId>jsonrpc</artifactId>
-   <version>1.0.0</version>
-</dependency>
+<dependencies>
+   <dependency>
+      <groupId>org.json.rpc</groupId>
+      <artifactId>jsonrpc</artifactId>
+      <version>1.0.0</version>
+   </dependency>
+</dependencies>
+
+<repositories>
+   <repository>
+      <id>json-rpc</id>
+      <url>http://json-rpc.googlecode.com/svn/mavenrepo/</url>
+   </repository>
+</repositories>
 }}}
 
 = Defining Interfaces =
