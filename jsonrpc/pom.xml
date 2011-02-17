@@ -238,8 +238,7 @@
                 <configuration>
                     <descriptor>src/main/build/assembly-descriptor.xml</descriptor>
                     <finalName>${project.artifactId}-${project.version}</finalName>
-                    <outputDirectory>target/dist</outputDirectory>
-                    <workDirectory>target/assembly/work</workDirectory>
+                    <appendAssemblyId>false</appendAssemblyId>
                 </configuration>
             </plugin>
         </plugins>
