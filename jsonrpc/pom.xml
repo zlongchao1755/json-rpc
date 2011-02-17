@@ -24,7 +24,7 @@
         <profile>
             <id>release</id>
             <properties>
-                <jsonrpc.version>1.0</jsonrpc.version>
+                <jsonrpc.version>1.0.0</jsonrpc.version>
             </properties>
         </profile>
     </profiles>
@@ -46,14 +46,14 @@
         <url>${googleProject.url}/issues/list</url>
     </issueManagement>
     <organization>
-        <name>develnix</name>
-        <url>http://develnix.blogspot.com/</url>
+        <name>DevelNix</name>
+        <url>http://www.develnix.com/</url>
     </organization>
     <developers>
         <developer>
-            <name>devel.nix</name>
-            <organization>develnix</organization>
-            <email>devel.nix@gmail.com</email>
+            <name>nix</name>
+            <organization>DevelNix</organization>
+            <email>nix@develnix.com</email>
         </developer>
     </developers>
 
@@ -187,7 +187,7 @@
                 <version>2.1.2</version>
                 <executions>
                     <execution>
-                        <phase>verify</phase>
+                        <phase>package</phase>
                         <goals>
                             <goal>jar</goal>
                         </goals>
