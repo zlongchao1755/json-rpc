@@ -2,12 +2,13 @@
 
 <wiki:toc max_depth="2" />
 
-== Defining Interfaces ==
 
-== Binding Service Implementation ==
+= Defining Interfaces =
 
-== Hosting thru Servlet ==
+= Binding Service Implementation =
 
-== Access from Java Client ==
+= Hosting thru Servlet =
 
-== Access from JavaScript Client ==
+= Access from Java Client =
+
+= Access from JavaScript Client =
