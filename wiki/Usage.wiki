@@ -130,5 +130,10 @@ int result = calc.add(1, 2);
 
 }}}
 
+== Exception Handling ==
+TODO
+
 = Access from !JavaScript Client =
+TODO
+== Exception Handling ==
 TODO
