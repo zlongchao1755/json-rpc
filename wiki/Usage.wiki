@@ -6,6 +6,15 @@
    * [http://code.google.com/p/google-gson/ Gson 1.4]
    * [http://www.slf4j.org/ SLF4J-API 1.5.6]
 
+== Maven ==
+
+{{{
+<groupId>org.json.rpc</groupId>
+   <artifactId>jsonrpc</artifactId>
+   <name>JSON-RPC</name>
+<version>1.0.0</version>
+}}}
+
 = Defining Interfaces =
 Lets pickup an example of a _Calculator_ service. <br />
 
