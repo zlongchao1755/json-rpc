@@ -9,10 +9,11 @@
 == Maven ==
 
 {{{
-<groupId>org.json.rpc</groupId>
+<dependency>
+   <groupId>org.json.rpc</groupId>
    <artifactId>jsonrpc</artifactId>
-   <name>JSON-RPC</name>
-<version>1.0.0</version>
+   <version>1.0.0</version>
+</dependency>
 }}}
 
 = Defining Interfaces =
