@@ -1,8 +1,6 @@
 #summary How to use JSON-RPC library
 
-= Usage =
-
-This document will cover following topics
+= Table of Content =
 
   * Defining interfaces for services.
   * Binding service implementation on server.
