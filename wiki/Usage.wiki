@@ -28,7 +28,7 @@
 = Defining Interfaces =
 Lets pickup an example of a _Calculator_ service. <br />
 
-The contract will be defined as 
+The client side interface will be
 {{{
 
 public interface Calculator {
@@ -43,7 +43,7 @@ public interface Calculator {
 
 }}}
 
-The implementation will be 
+The server side implementation will be 
 {{{
 public class CalculatorImpl implements Calculator {
    
