@@ -137,3 +137,5 @@ TODO
 TODO
 == Exception Handling ==
 TODO
+
+= Limitations =
