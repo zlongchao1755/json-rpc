@@ -45,7 +45,7 @@ public interface Calculator {
 
 The server side implementation will be 
 {{{
-public class CalculatorImpl implements Calculator {
+public class SimpleCalculator implements Calculator {
    
    public double add(double x, double y) {
       return x + y;
@@ -78,7 +78,7 @@ Once the service is ready, it needs to be bound to the JSON-RPC Server to make i
 private JsonRpcExecutor bind() {
    JsonRpcExecutor executor = new JsonRpcExecutor();
 
-   Calculator calcImpl = new CalculatorImpl();
+   Calculator calcImpl = new SimpleCalculator();
    executor.add("calc", calcImpl, Calculator.class); 
 
    // add more services here
