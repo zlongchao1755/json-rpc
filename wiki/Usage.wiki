@@ -1,11 +1,13 @@
 #summary How to use JSON-RPC library
 
-= Table of Content =
+<wiki:toc max_depth="2" />
 
-  * Defining interfaces for services.
-  * Binding service implementation on server.
-  * Using servlet to host the RPC service.
-  * Access remote service from Java client
-  * Access remote service from JavaScript client
+== Defining Interfaces ==
 
-= Details =
+== Binding Service Implementation ==
+
+== Hosting thru Servlet ==
+
+== Access from Java Client ==
+
+== Access from JavaScript Client ==
