@@ -15,6 +15,8 @@ public interface Calculator {
 
    double multiply(double x, double y);
 
+   double average(double ...values);
+
 }
 
 }}}
@@ -30,13 +32,46 @@ public class CalculatorImpl implements Calculator {
    public double multiply(double x, double y) {
       return x * y;
    }
+
+   public  double average(double ...values) {
+      if (values.length == 0) {
+         return 0;
+      }
+      double sum = 0;
+      for (double d : values) {
+         sum += d;
+      }
+      return sum / values.length;
+   }
+
 }
 }}}
 
 
 = Binding Service Implementation =
 
-= Hosting thru Servlet =
+Once the service is ready, it needs to be bound to the JSON-RPC Server to make it available.
+{{{
+
+public JsonRpcExecutor bind() {
+   JsonRpcExecutor executor = new JsonRpcExecutor();
+
+   Calculator calcImpl = new CalculatorImpl();
+   executor.add("calc", calcImpl, Calculator.class); 
+
+   // add more services here
+
+   return executor;
+}
+
+}}}
+
+= Hosting with a Servlet =
+
+public class JsonRpcServlet extends HttpServlet {
+
+
+}
 
 = Access from Java Client =
 
