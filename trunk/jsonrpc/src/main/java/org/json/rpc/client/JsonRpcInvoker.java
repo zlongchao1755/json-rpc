@@ -22,7 +22,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.json.rpc.commons.GsonTypeChecker;
-import org.json.rpc.commons.JsonRpcException;
+import org.json.rpc.commons.JsonRpcClientException;
 import org.json.rpc.commons.JsonRpcRemoteException;
 import org.json.rpc.commons.TypeChecker;
 import org.slf4j.Logger;
@@ -88,7 +88,7 @@ public final class JsonRpcInvoker {
         try {
             responseData = transport.call(requestData);
         } catch (Exception e) {
-            throw new JsonRpcException("unable to get data from transport", e);
+            throw new JsonRpcClientException("unable to get data from transport", e);
         }
         LOG.debug("JSON-RPC <<  {}", responseData);
 

@@ -16,7 +16,7 @@
 
 package org.json.rpc.client;
 
-import org.json.rpc.commons.JsonRpcException;
+import org.json.rpc.commons.JsonRpcClientException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -71,7 +71,7 @@ public class HttpJsonRpcClientTransport implements JsonRpcClientTransport {
 
             int statusCode = connection.getResponseCode();
             if (statusCode != HttpURLConnection.HTTP_OK) {
-                throw new JsonRpcException("unexpected status code returned : " + statusCode);
+                throw new JsonRpcClientException("unexpected status code returned : " + statusCode);
             }
         } finally {
             if (out != null) {
