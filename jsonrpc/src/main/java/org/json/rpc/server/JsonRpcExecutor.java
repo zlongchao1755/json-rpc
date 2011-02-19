@@ -244,6 +244,9 @@ public final class JsonRpcExecutor implements RpcIntroSpection {
             if (t instanceof InvocationTargetException) {
                 t = ((InvocationTargetException) t).getTargetException();
             }
+            if (t instanceof JsonRpcRemoteException) {
+                throw (JsonRpcRemoteException) t;
+            }
             throw new JsonRpcRemoteException(JsonRpcErrorCodes.getServerError(0), t.getMessage(), getStackTrace(t));
         }
     }
