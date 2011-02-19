@@ -10,10 +10,6 @@
     <version>${jsonrpc.version}</version>
 
     <properties>
-        <googleProject.name>json-rpc</googleProject.name>
-        <googleProject.url>http://code.google.com/p/json-rpc</googleProject.url>
-        <googleProject.scmHost>json-rpc.googlecode.com</googleProject.scmHost>
-
         <jsonrpc.version>1.0-SNAPSHOT</jsonrpc.version>
         <java.version>1.5</java.version>
 
@@ -37,13 +33,13 @@
         </license>
     </licenses>
     <scm>
-        <connection>scm:svn:http://${googleProject.scmHost}/svn/trunk/jsonrpc</connection>
-        <developerConnection>scm:svn:https://${googleProject.scmHost}/svn/trunk/jsonrpc</developerConnection>
-        <url>http://${googleProject.scmHost}/svn/trunk/jsonrpc</url>
+        <connection>scm:svn:http://json-rpc.googlecode.com/svn/trunk/jsonrpc</connection>
+        <developerConnection>scm:svn:https://json-rpc.googlecode.com/svn/trunk/jsonrpc</developerConnection>
+        <url>http://json-rpc.googlecode.com/svn/trunk/jsonrpc</url>
     </scm>
     <issueManagement>
         <system>Google Code Issue Tracking</system>
-        <url>${googleProject.url}/issues/list</url>
+        <url>http://code.google.com/p/json-rpc/issues/list</url>
     </issueManagement>
     <organization>
         <name>DevelNix</name>
@@ -221,7 +217,7 @@
                 <version>2.1</version>
                 <configuration>
                     <arguments>-DenableCiProfile=true</arguments>
-                    <tagBase>https://${googleProject.scmHost}/svn/tags/</tagBase>
+                    <tagBase>https://json-rpc.googlecode.com/svn/tags/</tagBase>
                 </configuration>
             </plugin>
             <plugin>
