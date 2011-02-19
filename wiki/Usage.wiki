@@ -25,6 +25,8 @@
 </repositories>
 }}}
 
+Note: classifier = server/client can be used to include only specific implementations.
+
 = Defining Interfaces =
 Lets pickup an example of a _Calculator_ service. <br />
 
@@ -36,8 +38,6 @@ public interface Calculator {
    double add(double x, double y);
 
    double multiply(double x, double y);
-
-   double average(double ...values);
 
 }
 
@@ -53,17 +53,6 @@ public class SimpleCalculator implements Calculator {
 
    public double multiply(double x, double y) {
       return x * y;
-   }
-
-   public  double average(double ...values) {
-      if (values.length == 0) {
-         return 0;
-      }
-      double sum = 0;
-      for (double d : values) {
-         sum += d;
-      }
-      return sum / values.length;
    }
 
 }
