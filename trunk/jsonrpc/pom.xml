@@ -20,7 +20,7 @@
         <profile>
             <id>release</id>
             <properties>
-                <jsonrpc.version>1.0.0</jsonrpc.version>
+                <jsonrpc.version>1.0</jsonrpc.version>
             </properties>
         </profile>
     </profiles>
@@ -52,7 +52,13 @@
             <email>nix@develnix.com</email>
         </developer>
     </developers>
-
+    <distributionManagement>
+        <repository>
+            <id>local.repo</id>
+            <name>file repository to svn</name>
+            <url>file://${basedir}/../../mavenrepo</url>
+        </repository>
+    </distributionManagement> 
 
     <dependencies>
         <dependency>
@@ -86,7 +92,7 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
-            <version>1.5.6</version>
+            <version>1.5.8</version>
             <scope>test</scope>
         </dependency>
         <dependency>
