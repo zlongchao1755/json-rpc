@@ -18,6 +18,13 @@
                 <include>jsonrpc-*.jar</include>
             </includes>
         </fileSet>
+        <fileSet>
+            <directory>target/apidocs</directory>
+            <outputDirectory>docs/javadocs</outputDirectory>
+            <includes>
+                <include>**</include>
+            </includes>
+        </fileSet>
     </fileSets>
     <dependencySets>
         <dependencySet>
