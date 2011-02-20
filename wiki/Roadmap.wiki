@@ -1,0 +1,6 @@
+#summary Roadmap for json-rpc project
+#labels Featured
+
+  * To incorporate more languages.
+  * Use home grown JSON library
+  * To support something like Soap
