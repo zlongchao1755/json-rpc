@@ -197,7 +197,6 @@ JSON-RPC uses SLF4J for logging, so you will have to include specific implementa
 
 == Android ==
 {{{
-<dependencies>
    <dependency>
       <groupId>org.json.rpc</groupId>
       <artifactId>jsonrpc</artifactId>
@@ -215,6 +214,4 @@ JSON-RPC uses SLF4J for logging, so you will have to include specific implementa
       <artifactId>slf4j-android</artifactId>
       <version>1.6.1-RC1</version>
    </dependency>
-
-</dependencies>
 }}}
