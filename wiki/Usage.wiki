@@ -201,6 +201,7 @@ JSON-RPC uses SLF4J for logging, so you will have to include specific implementa
       <groupId>org.json.rpc</groupId>
       <artifactId>jsonrpc</artifactId>
       <version>1.0</version>
+     <classifier>client</classifier>
       <exclusions>
            <exclusion>
                <groupId>org.slf4j</groupId>
