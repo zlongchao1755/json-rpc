@@ -1,0 +1,5 @@
+jsonrpc-js is a javascript library implementing a very light weight client
+functionality of JSON-RPC protocol. 
+
+Complete JSON-RPC documentation is available at its project page
+http://code.google.com/p/json-rpc

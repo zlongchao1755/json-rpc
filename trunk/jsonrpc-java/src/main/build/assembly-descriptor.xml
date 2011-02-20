@@ -8,7 +8,6 @@
             <includes>
                 <include>README*</include>
                 <include>LICENSE*</include>
-                <include>jsonrpc.js</include>
             </includes>
         </fileSet>
         <fileSet>
