@@ -42,14 +42,14 @@
         <url>http://code.google.com/p/json-rpc/issues/list</url>
     </issueManagement>
     <organization>
-        <name>DevelNix</name>
-        <url>http://www.develnix.com/</url>
+        <name>Ritwik.net</name>
+        <url>http://www.ritwik.net/</url>
     </organization>
     <developers>
         <developer>
-            <name>nix</name>
-            <organization>DevelNix</organization>
-            <email>nix@develnix.com</email>
+            <name>ritwik</name>
+            <organization>Ritwik.net</organization>
+            <email>ritwik@ritwik.net</email>
         </developer>
     </developers>
     <distributionManagement>
