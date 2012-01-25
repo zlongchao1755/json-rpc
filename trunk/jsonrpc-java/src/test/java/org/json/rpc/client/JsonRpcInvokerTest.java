@@ -19,6 +19,7 @@ package org.json.rpc.client;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.json.rpc.commons.JsonRpcRemoteException;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
@@ -53,6 +54,28 @@ public class JsonRpcInvokerTest {
             assertNull(e.getCode());
             assertEquals(e.getMsg(), errorMessage);
             assertNull(e.getData());
+        }
+    }
+
+    @Test
+    public void testIssue0002() throws Exception {
+        JsonObject resp = new JsonObject();
+        resp.addProperty("jsonrpc", "2.0");
+        JsonObject error = new JsonObject();
+        error.addProperty("code", -32002);
+        error.addProperty("message", "service.invalid-parameters");
+        error.add("data", new JsonParser().parse("{\"email\":[\"'email' is no valid email address in the basic format local-part@hostname\"]}}"));
+        resp.add("error", error);
+
+        TestInterface handle = invoker.get(getTransport(resp), "someHandler", TestInterface.class);
+
+        try {
+            handle.call(1);
+        } catch (UnsupportedOperationException e) {
+            e.printStackTrace();
+            fail("issue 0002 is not resolved");
+        } catch (Exception e) {
+            // ignore
         }
     }
 

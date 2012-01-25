@@ -105,7 +105,7 @@ public final class JsonRpcInvoker {
                 JsonObject o = error.getAsJsonObject();
                 Integer code = (o.has("code") ? o.get("code").getAsInt() : null);
                 String message = (o.has("message") ? o.get("message").getAsString() : null);
-                String data = (o.has("data") ? o.get("data").getAsString() : null);
+                String data = (o.has("data") ? (o.get("data") instanceof JsonObject ? o.get("data").toString() : o.get("data").getAsString()) : null);
                 throw new JsonRpcRemoteException(code, message, data);
             } else {
                 throw new JsonRpcRemoteException("unknown error, data = " + error.toString());
