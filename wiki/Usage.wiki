@@ -68,7 +68,7 @@ public class JsonRpcServlet extends HttpServlet {
         JsonRpcExecutor executor = new JsonRpcExecutor();
 
         Calculator calcImpl = new CalculatorImpl();
-        executor.add("calc", calcImpl, Calculator.class);
+        executor.addHandler("calc", calcImpl, Calculator.class);
         // add more services here
 
         return executor;
