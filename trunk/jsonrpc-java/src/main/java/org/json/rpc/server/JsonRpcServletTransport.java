@@ -20,7 +20,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.PrintWriter;
 
 public class JsonRpcServletTransport implements JsonRpcServerTransport {
 
@@ -56,14 +56,14 @@ public class JsonRpcServletTransport implements JsonRpcServerTransport {
     }
 
     public void writeResponse(String responseData) throws Exception {
-        byte[] data = responseData.getBytes();
+        byte[] data = responseData.getBytes(resp.getCharacterEncoding());
         resp.addHeader("Content-Type", "application/json");
-        resp.setHeader("Content-Length", "" + data.length);
+        resp.setHeader("Content-Length", Integer.toString(data.length));
 
-        OutputStream out = null;
+        PrintWriter out = null;
         try {
-            out = resp.getOutputStream();
-            out.write(data);
+            out = resp.getWriter();
+            out.write(responseData);
             out.flush();
         } finally {
             if (out != null) {
