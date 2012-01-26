@@ -18,14 +18,16 @@ package org.json.rpc.client;
 
 import org.json.rpc.commons.JsonRpcClientException;
 
-import java.io.BufferedReader;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.zip.GZIPInputStream;
 
 public class HttpJsonRpcClientTransport implements JsonRpcClientTransport {
 
@@ -56,6 +58,9 @@ public class HttpJsonRpcClientTransport implements JsonRpcClientTransport {
                 connection.addRequestProperty(entry.getKey(), entry.getValue());
             }
         }
+
+        connection.addRequestProperty("Accept-Encoding", "gzip");
+
         connection.setRequestMethod("POST");
         connection.setDoOutput(true);
         connection.connect();
@@ -79,21 +84,32 @@ public class HttpJsonRpcClientTransport implements JsonRpcClientTransport {
             }
         }
 
-        BufferedReader in = null;
+        String responseEncoding = connection.getHeaderField("Content-Encoding");
+        responseEncoding = (responseEncoding == null ? "" : responseEncoding.trim());
 
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+
+        InputStream in = connection.getInputStream();
         try {
-            in = new BufferedReader(new InputStreamReader(
-                    connection.getInputStream()));
-            String inputLine;
-            StringBuilder response = new StringBuilder();
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
+            in = connection.getInputStream();
+            if ("gzip".equalsIgnoreCase(responseEncoding)) {
+                in = new GZIPInputStream(in);
             }
-            return response.toString();
+            in = new BufferedInputStream(in);
+            
+            byte[] buff = new byte[1024];
+            int n;
+            while ((n = in.read(buff)) > 0) {
+                bos.write(buff, 0, n);
+            }
+            bos.flush();
+            bos.close();
         } finally {
             if (in != null) {
                 in.close();
             }
         }
-        }
+
+        return bos.toString();
     }
+}
